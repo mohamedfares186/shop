@@ -1,0 +1,29 @@
+name: "Blog"
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: cd services/auth/ && npm install
+
+      - name: Run Lint
+        run: cd services/auth/ && npm run lint
+
+      - name: Type Check
+        run: cd services/auth/ && npx tsc --noEmit
+
+      - name: Build Docker Image
+        run: cd services/auth/ && docker build -t auth:latest .
