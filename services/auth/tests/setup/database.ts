@@ -10,7 +10,7 @@ export const initializeRoles = async () => {
 };
 
 export const clearDatabase = async () => {
-  await Role.destroy({ where: {}, truncate: true });
+  await Role.destroy({ where: {} });
 };
 
 export const setupTestDatabase = async () => {
