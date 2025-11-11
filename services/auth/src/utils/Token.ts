@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import env from "../config/env.ts";
 import User from "../models/users.ts";
+import type { UUIDTypes } from "uuid";
 
 const { JWT } = env;
 
@@ -19,11 +20,11 @@ class Tokens {
     );
   }
 
-  static refresh(userId: string): string {
+  static refresh(userId: UUIDTypes): string {
     return jwt.sign({ userId }, JWT, { expiresIn: "7d" });
   }
 
-  static secure(userId: string, secret: string): string {
+  static secure(userId: UUIDTypes, secret: string): string {
     const random = crypto.randomBytes(32).toString("hex");
     const timeStamp = Date.now();
     const hmac = crypto

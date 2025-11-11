@@ -40,6 +40,11 @@ class AdminUser {
     return passwordRegex.test(password);
   }
 
+  validateDate(date: string): boolean {
+    const dateRegex = /^(?:\d{4})-(?:\d{2})-(?:\d{2})/;
+    return dateRegex.test(date);
+  }
+
   async AdminCredentials() {
     logger.info(`=====================\n`);
     logger.info(`Initialize Admin User\n`);
@@ -125,7 +130,12 @@ class AdminUser {
       break;
     }
     while (true) {
-      dateOfBirth = (await this.prompt("Admin date of birth: ")).trim();
+      dateOfBirth = await this.prompt(`Date of birth: `);
+      const validate = this.validateDate(dateOfBirth);
+      if (!validate) {
+        logger.error(`Invalid Date Format`);
+        continue;
+      }
       break;
     }
     return { firstName, lastName, email, username, password, dateOfBirth };

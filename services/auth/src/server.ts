@@ -1,3 +1,4 @@
+import "dotenv/config";
 import app from "./app.ts";
 import { logger } from "./middleware/logger.ts";
 import env from "./config/env.ts";

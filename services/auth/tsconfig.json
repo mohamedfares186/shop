@@ -11,7 +11,6 @@
     "target": "es2022",
     "types": [],
 
-
     // Other Outputs
     "sourceMap": true,
     "declaration": true,
@@ -27,6 +26,7 @@
     "noUnusedLocals": true,
 
     // Recommended Options
+    "esModuleInterop": true,
     "strict": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
@@ -37,5 +37,5 @@
     "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "tests/"]
 }

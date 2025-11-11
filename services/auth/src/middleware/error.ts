@@ -1,11 +1,6 @@
 import { logger } from "./logger.ts";
-import type { UserRequest } from "../types/request.ts";
+import type { UserRequest, ResponseError } from "../types/request.ts";
 import type { NextFunction, Response } from "express";
-
-interface ResponseError extends Error {
-  statusCode: number;
-  status: string;
-}
 
 const error = (
   err: ResponseError,
@@ -28,17 +23,17 @@ const error = (
     Error Stack: ${stack}
   `;
 
-  if (err.statusCode >= 500) {
+  if (statusCode >= 500) {
     logger.error(`Server Error: ${error}`);
   }
 
-  if (err.statusCode >= 400) {
+  if (statusCode >= 400) {
     logger.warn(`Client Error: ${error}`);
   }
 
   return res
-    .status(err.statusCode || 500)
-    .json({ message: err.message || "Internal server error" });
+    .status(statusCode || 500)
+    .json({ message: message || "Internal server error" });
 };
 
 export default error;

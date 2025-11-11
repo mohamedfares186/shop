@@ -1,4 +1,4 @@
-name: "Blog"
+name: "Shop"
 
 on:
   push:
@@ -24,6 +24,18 @@ jobs:
 
       - name: Type Check
         run: cd services/auth/ && npx tsc --noEmit
+
+      - name: Run tests
+        run: cd services/auth/ && npm run test
+        env:
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+          PORT: ${{ secrets.PORT }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SECURE_TOKEN_SECRET: ${{ secrets.SECURE_TOKEN_SECRET }}
+          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
 
       - name: Build Docker Image
         run: cd services/auth/ && docker build -t auth:latest .
