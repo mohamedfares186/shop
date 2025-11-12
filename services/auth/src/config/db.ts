@@ -14,7 +14,7 @@ const database: SequelizeOptions = {
 
 const sequelize = new Sequelize(database);
 
-const dbConnection = async () => {
+export const dbConnection = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync({ force: true });
@@ -25,4 +25,3 @@ const dbConnection = async () => {
 };
 
 export default sequelize;
-export { dbConnection };

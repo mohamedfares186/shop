@@ -3,26 +3,56 @@ import type { LoginCredentials } from "../types/credentials.ts";
 import User from "../models/users.ts";
 import bcrypt from "bcryptjs";
 
+interface LoginResult {
+  success: boolean;
+  message: string;
+  user?: User;
+}
+
 class LoginService {
-  async login(credentials: LoginCredentials): Promise<User> {
-    const { username, password } = credentials;
-
-    if (!username || !password) throw new Error("All fields are required");
-
+  async login(credentials: LoginCredentials): Promise<LoginResult> {
     try {
-      const matchUser = await User.findOne({ where: { username } });
-      if (!matchUser) throw new Error("Invalid Credentials");
+      const { username, password } = credentials;
 
-      const passwordCompare = await bcrypt.compare(
-        password,
-        matchUser.password
-      );
-      if (!passwordCompare) throw new Error("Invalid Credentials");
+      if (!username || !password) {
+        return {
+          success: false,
+          message: "Username and password are required",
+        };
+      }
 
-      return matchUser;
+      const user = await User.findOne({
+        where: { username },
+        attributes: { include: ["password"] },
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          message: "Invalid credentials",
+        };
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        return {
+          success: false,
+          message: "Invalid credentials",
+        };
+      }
+
+      return {
+        success: true,
+        message: "Login successful",
+        user,
+      };
     } catch (error) {
       logger.error(`Error logging user in: ${error}`);
-      throw error;
+      return {
+        success: false,
+        message: "An error occurred during login",
+      };
     }
   }
 }

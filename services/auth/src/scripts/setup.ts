@@ -5,6 +5,7 @@ import { logger } from "../middleware/logger.ts";
 
 const admin = new AdminUser();
 
+
 try {
   await Roles();
   await Permissions();
@@ -13,3 +14,4 @@ try {
   logger.error(error);
   throw error;
 }
+

@@ -3,41 +3,114 @@ import Tokens from "../utils/Token.ts";
 import env from "../config/env.ts";
 import bcrypt from "bcryptjs";
 import User from "../models/users.ts";
+import { logger } from "../middleware/logger.ts";
 
 const { SECURE } = env;
 
+interface PasswordResult {
+  success: boolean;
+  message: string;
+}
+
 class PasswordService {
-  async forget(email: string) {
-    const user = await User.findOne({
-      where: { email },
-    });
-    if (!user) throw new Error("Invalid Credentials");
+  async forget(email: string): Promise<PasswordResult> {
+    try {
+      if (!email) {
+        return {
+          success: false,
+          message: "Email is required",
+        };
+      }
 
-    const token = Tokens.secure(user.userId as string, SECURE as string);
+      const user = await User.findOne({ where: { email } });
 
-    const link = `http://localhost:5000/api/auth/password/reset/${token}`;
+      if (!user) {
+        return {
+          success: true,
+          message:
+            "If an account exists, a reset link has been sent to your email",
+        };
+      }
 
-    return await sendEmail(
-      user.email,
-      "Reset your Password",
-      `Click this link to reset your password: ${link}`
-    );
+      const token = Tokens.secure(user.userId as string, SECURE as string);
+      const link = `http://localhost:5000/api/v1/auth/password/reset/${token}`;
+
+      await sendEmail(
+        user.email,
+        "Reset your Password",
+        `Click this link to reset your password: ${link}`
+      );
+
+      return {
+        success: true,
+        message:
+          "If an account exists, a reset link has been sent to your email",
+      };
+    } catch (error) {
+      logger.error(`Error sending password reset email: ${error}`);
+      return {
+        success: false,
+        message: "Failed to send password reset email",
+      };
+    }
   }
 
-  async reset(password: string, userId: string): Promise<boolean> {
-    if (password.length < 8)
-      throw new Error("Password can't be less than 8 characters");
+  async reset(token: string, password: string): Promise<PasswordResult> {
+    try {
+      if (!token) {
+        return {
+          success: false,
+          message: "Reset token is required",
+        };
+      }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+      if (!password) {
+        return {
+          success: false,
+          message: "Password is required",
+        };
+      }
 
-    const updatePassword = await User.update(
-      { passwordHash },
-      { where: { userId } }
-    );
-    if (!updatePassword)
-      throw new Error("Error updating password, please try again later");
+      if (password.length < 8) {
+        return {
+          success: false,
+          message: "Password must be at least 8 characters long",
+        };
+      }
 
-    return true;
+      const userId = Tokens.validate(token, SECURE, 3600000);
+
+      if (!userId) {
+        return {
+          success: false,
+          message: "Invalid or expired reset token",
+        };
+      }
+
+      const user = await User.findOne({ where: { userId } });
+
+      if (!user) {
+        return {
+          success: false,
+          message: "User not found",
+        };
+      }
+
+      const passwordHash = await bcrypt.hash(password, 12);
+      user.password = passwordHash;
+      await user.save();
+
+      return {
+        success: true,
+        message: "Password has been reset successfully",
+      };
+    } catch (error) {
+      logger.error(`Error resetting password: ${error}`);
+      return {
+        success: false,
+        message: "Failed to reset password",
+      };
+    }
   }
 }
 

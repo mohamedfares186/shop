@@ -7,38 +7,40 @@ import type { UserRequest } from "../types/request.ts";
 const { ENV } = env;
 
 class RefreshController {
-  constructor(protected session = new RefreshService()) {
-    this.session = session;
+  constructor(protected refreshService = new RefreshService()) {
+    this.refreshService = refreshService;
   }
 
   refresh = async (req: UserRequest, res: Response): Promise<Response> => {
     try {
-      const userId = req?.user?.userId;
-      const token = req?.cookies["refresh-token"];
+      const userId = req.user?.userId;
+      const token = req.cookies["refresh-token"];
 
-      if (!token || !userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const { accessToken, refreshToken } = await this.session.refresh(
-        userId,
-        token
-      );
-
-      if (!accessToken || !refreshToken) {
-        return res.status(500).json({
-          message: "Failed to generate new tokens",
+      if (!userId || !token) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized - Invalid session",
         });
       }
 
-      res.cookie("access-token", accessToken, {
+      const result = await this.refreshService.refresh(userId, token);
+
+      if (!result.success || !result.accessToken || !result.refreshToken) {
+        const statusCode = result.message.includes("expired") ? 401 : 400;
+        return res.status(statusCode).json({
+          success: false,
+          message: result.message,
+        });
+      }
+
+      res.cookie("access-token", result.accessToken, {
         httpOnly: true,
         secure: ENV === "production",
         sameSite: "strict",
         maxAge: 1000 * 60 * 60,
       });
 
-      res.cookie("refresh-token", refreshToken, {
+      res.cookie("refresh-token", result.refreshToken, {
         httpOnly: true,
         secure: ENV === "production",
         sameSite: "strict",
@@ -46,11 +48,15 @@ class RefreshController {
       });
 
       return res.status(200).json({
-        message: "Tokens refreshed successfully",
+        success: true,
+        message: result.message,
       });
     } catch (error) {
-      logger.error(`Error refreshing tokens: ${error}`);
-      return res.status(500).json({ message: "Internal server error" });
+      logger.error(`Error in refresh controller: ${error}`);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
     }
   };
 }

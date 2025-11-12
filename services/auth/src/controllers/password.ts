@@ -1,54 +1,68 @@
 import type { Request, Response } from "express";
 import PasswordService from "../services/password.ts";
 import { logger } from "../middleware/logger.ts";
-import Tokens from "../utils/Token.ts";
-import env from "../config/env.ts";
-
-const { SECURE } = env;
 
 class PasswordController {
-  constructor(protected password = new PasswordService()) {
-    this.password = password;
+  constructor(protected passwordService = new PasswordService()) {
+    this.passwordService = passwordService;
   }
-  forget = async (req: Request, res: Response) => {
-    const email = req.body?.email;
-    if (!email)
-      return res.status(400).json({ message: "Email field is required" });
 
-    const forget = await this.password.forget(email);
-    if (!forget)
-      return res.status(500).json({ message: "Something went wrong" });
-    logger.error(`Error sending forget password email: ${forget}`);
+  forget = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { email } = req.body;
 
-    return res
-      .status(200)
-      .json({ message: "Reset email has been sent successfully" });
+      const result = await this.passwordService.forget(email);
+
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+
+      return res.status(200).json(result);
+    } catch (error) {
+      logger.error(`Error in forget password: ${error}`);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
   };
 
-  reset = async (req: Request, res: Response) => {
-    const token = req.params?.token;
-    const password = req.body?.password;
-    const repeatPassword = req.body?.repeatPassword;
-    if (!password || !repeatPassword)
-      res.status(400).json({ message: "All field are required" });
-    if (password !== repeatPassword)
-      return res.status(400).json({ message: "Passwords don't match" });
-    if (!token) return res.status(400).json({ message: "Token is required" });
+  reset = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { token } = req.params;
+      const { password, repeatPassword } = req.body;
 
-    const validateToken = Tokens.validate(token, SECURE, 3600000);
-    if (!validateToken)
-      return res.status(400).json({ message: "Invalid or expired token" });
+      if (!password || !repeatPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required",
+        });
+      }
 
-    const resetPassword = await this.password.reset(
-      password,
-      validateToken as string
-    );
-    if (!resetPassword)
-      return res.status(500).json({ message: "Internal server error" });
+      if (password !== repeatPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Passwords do not match",
+        });
+      }
 
-    return res
-      .status(201)
-      .json({ message: "password has been updated successfully" });
+      const result = await this.passwordService.reset(
+        token as string,
+        password
+      );
+
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+
+      return res.status(200).json(result);
+    } catch (error) {
+      logger.error(`Error in reset password: ${error}`);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
   };
 }
 

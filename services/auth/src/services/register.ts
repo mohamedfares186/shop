@@ -11,28 +11,65 @@ import Role from "../models/roles.ts";
 
 const { SECURE } = env;
 
+interface RegisterResult {
+  success: boolean;
+  message: string;
+  user?: User;
+  emailSent?: boolean;
+}
+
 class RegisterService {
-  async register(credentials: RegisterCredentials): Promise<User> {
+  async register(credentials: RegisterCredentials): Promise<RegisterResult> {
     try {
       const { firstName, lastName, email, username, password, dateOfBirth } =
         credentials;
-      const check = await User.findOne({
+
+      if (
+        !firstName ||
+        !lastName ||
+        !email ||
+        !username ||
+        !password ||
+        !dateOfBirth
+      ) {
+        return {
+          success: false,
+          message: "All fields are required",
+        };
+      }
+
+      if (password.length < 8) {
+        return {
+          success: false,
+          message: "Password must be at least 8 characters long",
+        };
+      }
+
+      const existingUser = await User.findOne({
         where: {
           [Op.or]: [{ email }, { username }],
         },
-        attributes: {
-          include: ["password"],
-        },
       });
 
-      if (check) throw new Error("Invalid Email or Username");
+      if (existingUser) {
+        return {
+          success: false,
+          message: "Email or username already exists",
+        };
+      }
 
       const role = await Role.findOne({ where: { level: 1234 } });
-      const passwordHash: string = await bcrypt.hash(password, 12);
-      const userId: UUIDTypes = uuidv4();
 
-      if (role === null)
-        throw new Error("Default roles has not been initialized");
+      if (!role) {
+        logger.error("Default role not found in database");
+        return {
+          success: false,
+          message: "System configuration error. Please contact support.",
+        };
+      }
+
+      const passwordHash = await bcrypt.hash(password, 12);
+      const userId: UUIDTypes = uuidv4();
 
       const newUser = await User.create({
         userId,
@@ -43,25 +80,46 @@ class RegisterService {
         password: passwordHash,
         roleId: role.roleId,
         dateOfBirth,
+        isVerified: false,
       });
 
-      if (!newUser)
-        throw new Error("Something went wrong, please try again later!");
+      if (!newUser) {
+        return {
+          success: false,
+          message: "Failed to create user account",
+        };
+      }
 
-      const token = Tokens.secure(userId as UUIDTypes, SECURE);
+      let emailSent = false;
+      try {
+        const token = Tokens.secure(userId as string, SECURE);
+        const link = `http://localhost:5000/api/v1/auth/email/verify/${token}`;
 
-      const link = `http://localhost:5000/api/auth/email/${token}`;
+        await sendEmail(
+          newUser.email,
+          "Verify your Email",
+          `Click this link to verify your email: ${link}`
+        );
+        emailSent = true;
+      } catch (emailError) {
+        logger.error(
+          `Failed to send verification email to ${email}: ${emailError}`
+        );
+      }
 
-      await sendEmail(
-        newUser.email,
-        "Verify your Email",
-        `Click this link to verify your email: ${link}`
-      );
-
-      return newUser;
+      return {
+        success: true,
+        message: emailSent
+          ? "Registration successful. Please check your email to verify your account."
+          : "Registration successful, but we couldn't send the verification email. Please request a new one.",
+        user: newUser,
+      };
     } catch (error) {
-      logger.error(`Error User Register: ${error}`);
-      throw error;
+      logger.error(`Error during user registration: ${error}`);
+      return {
+        success: false,
+        message: "An error occurred during registration",
+      };
     }
   }
 }

@@ -3,30 +3,112 @@ import Tokens from "../utils/Token.ts";
 import env from "../config/env.ts";
 import User from "../models/users.ts";
 import type { UUIDTypes } from "uuid";
+import { logger } from "../middleware/logger.ts";
 
 const { SECURE } = env;
 
+interface EmailVerificationResult {
+  success: boolean;
+  message: string;
+}
+
 class EmailService {
-  async send(userId: UUIDTypes, email: string) {
-    const token = Tokens.secure(userId as string, SECURE as string);
+  async send(
+    userId: UUIDTypes,
+    email: string
+  ): Promise<EmailVerificationResult> {
+    try {
+      const token = Tokens.secure(userId as string, SECURE as string);
+      const link = `http://localhost:5000/api/v1/auth/email/verify/${token}`;
 
-    const link = `http://localhost:5000/api/auth/email/${token}`;
+      await sendEmail(
+        email,
+        "Verify your Email",
+        `Click this link to verify your email: ${link}`
+      );
 
-    return await sendEmail(
-      email,
-      "Verify your Email",
-      `Click this link to verify your email: ${link}`
-    );
+      return {
+        success: true,
+        message: "Verification email sent successfully",
+      };
+    } catch (error) {
+      logger.error(`Error sending verification email: ${error}`);
+      return {
+        success: false,
+        message: "Failed to send verification email",
+      };
+    }
   }
-  async verify(userId: UUIDTypes, token: string): Promise<boolean> {
-    const check = await User.findOne({ where: { userId } });
-    if (!check) throw new Error("Invalid Credentials");
-    if (check.isVerified === true) throw new Error("Email is already verified");
-    const validateToken = Tokens.validate(token, SECURE, 36000000);
-    if (!validateToken) throw new Error("Invalid or expired token");
-    check.isVerified = true;
-    await check.save();
-    return true;
+
+  async verify(token: string): Promise<EmailVerificationResult> {
+    try {
+      const userId = Tokens.validate(token, SECURE, 36000000);
+
+      if (!userId) {
+        return {
+          success: false,
+          message: "Invalid or expired token",
+        };
+      }
+
+      const user = await User.findOne({ where: { userId } });
+
+      if (!user) {
+        return {
+          success: false,
+          message: "User not found",
+        };
+      }
+
+      if (user.isVerified === true) {
+        return {
+          success: false,
+          message: "Email is already verified",
+        };
+      }
+
+      user.isVerified = true;
+      await user.save();
+
+      return {
+        success: true,
+        message: "Email verified successfully",
+      };
+    } catch (error) {
+      logger.error(`Error verifying email: ${error}`);
+      return {
+        success: false,
+        message: "An error occurred during email verification",
+      };
+    }
+  }
+
+  async resend(userId: UUIDTypes): Promise<EmailVerificationResult> {
+    try {
+      const user = await User.findOne({ where: { userId } });
+
+      if (!user) {
+        return {
+          success: false,
+          message: "User not found",
+        };
+      }
+
+      if (user.isVerified) {
+        return {
+          success: false,
+          message: "Email is already verified",
+        };
+      }
+
+      return await this.send(userId, user.email);
+    } catch (error) {
+      logger.error(`Error resending verification email: ${error}`);
+      return {
+        success: false,
+        message: "Failed to resend verification email",
+      };
+    }
   }
 }
 

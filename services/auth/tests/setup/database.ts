@@ -1,6 +1,10 @@
-import { beforeAll, afterAll, beforeEach } from "@jest/globals";
-import Role from "../../src/models/roles.ts";
-import User from "../../src/models/users.ts";
+import { User, Role, Session, Permission } from "../../src/models/index.ts";
+import sequelize from "../../src/config/db.ts";
+
+export const setupTestDatabase = async () => {
+  await sequelize.authenticate();
+  await sequelize.sync({ force: true });
+};
 
 export const initializeRoles = async () => {
   await Role.bulkCreate([
@@ -10,26 +14,7 @@ export const initializeRoles = async () => {
 };
 
 export const clearDatabase = async () => {
-  await Role.destroy({ where: {} });
-};
-
-export const setupTestDatabase = async () => {
-  await clearDatabase();
-  await initializeRoles();
-};
-
-export const globalSetup = () => {
-  beforeAll(async () => {
-    await setupTestDatabase();
-  });
-
-  afterAll(async () => {
-    await clearDatabase();
-  });
-};
-
-export const perTestSetup = () => {
-  beforeEach(async () => {
-    await User.destroy({ where: {}, truncate: true });
-  });
+  await Role.destroy({ where: {}, truncate: true });
+  await User.destroy({ where: {}, truncate: true });
+  await sequelize.close();
 };

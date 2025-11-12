@@ -1,39 +1,92 @@
 import { logger } from "../middleware/logger.ts";
 import Tokens from "../utils/Token.ts";
-import type User from "../models/users.ts";
+import User from "../models/users.ts";
 import Session from "../models/sessions.ts";
 import { v4 as uuidv4, type UUIDTypes } from "uuid";
 
+interface RefreshResult {
+  success: boolean;
+  message: string;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
 class RefreshService {
-  async refresh(
-    userId: UUIDTypes,
-    token: string
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async refresh(userId: UUIDTypes, token: string): Promise<RefreshResult> {
     try {
-      const revokeToken = await Session.update(
-        { token },
-        { where: { userId } }
-      );
-      if (!revokeToken) throw new Error("Can't revoke token");
+      if (!userId || !token) {
+        return {
+          success: false,
+          message: "Invalid refresh request",
+        };
+      }
 
-      const accessToken = Tokens.access({ userId } as User);
-      const refreshToken = Tokens.refresh(userId);
+      const session = await Session.findOne({
+        where: {
+          token,
+          userId,
+          isRevoked: false,
+        },
+      });
 
-      const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+      if (!session) {
+        return {
+          success: false,
+          message: "Invalid or revoked session",
+        };
+      }
+
+      if (session.expiresAt < new Date()) {
+        return {
+          success: false,
+          message: "Session has expired",
+        };
+      }
+
+      const user = await User.findOne({ where: { userId } });
+
+      if (!user) {
+        return {
+          success: false,
+          message: "User not found",
+        };
+      }
+
+      await Session.update({ isRevoked: true }, { where: { token, userId } });
+
+      const accessToken = Tokens.access(user);
+      const newRefreshToken = Tokens.refresh(userId);
+
       const sessionId = uuidv4();
-      const createToken = await Session.create({
+      const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+
+      const newSession = await Session.create({
         sessionId,
         userId,
-        refreshToken,
+        token: newRefreshToken,
         expiresAt,
         isRevoked: false,
       });
-      if (!createToken) throw new Error("Can't create token");
 
-      return { accessToken, refreshToken };
+      if (!newSession) {
+        return {
+          success: false,
+          message: "Failed to create new session",
+        };
+      }
+
+      return {
+        success: true,
+        message: "Tokens refreshed successfully",
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
     } catch (error) {
-      logger.error(`Error refreshing token service: ${error}`);
-      throw error;
+      logger.error(`Error refreshing tokens: ${error}`);
+      return {
+        success: false,
+        message: "An error occurred while refreshing tokens",
+      };
     }
   }
 }

@@ -16,7 +16,7 @@ app.use(cookieParser());
 app.use(requestLogger as RequestHandler);
 app.use(limiter);
 
-app.use("/api/v1", router);
+app.use("/api/v1/auth", router);
 
 app.use(error as ErrorRequestHandler);
 
