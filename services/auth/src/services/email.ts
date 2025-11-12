@@ -1,11 +1,11 @@
-import sendEmail from "../utils/email.ts";
+import sendEmail from "@services/shared/src/utils/email.ts";
 import Tokens from "../utils/Token.ts";
 import env from "../config/env.ts";
 import User from "../models/users.ts";
 import type { UUIDTypes } from "uuid";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 
-const { SECURE } = env;
+const { SECURE, EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = env;
 
 interface EmailVerificationResult {
   success: boolean;
@@ -24,7 +24,11 @@ class EmailService {
       await sendEmail(
         email,
         "Verify your Email",
-        `Click this link to verify your email: ${link}`
+        `Click this link to verify your email: ${link}`,
+        EMAIL_HOST as string,
+        EMAIL_PORT as string,
+        EMAIL_USER as string,
+        EMAIL_PASS as string
       );
 
       return {

@@ -1,8 +1,8 @@
 import type { Response } from "express";
 import RefreshService from "../services/refresh.ts";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 import env from "../config/env.ts";
-import type { UserRequest } from "../types/request.ts";
+import type { UserRequest } from "@services/shared/src/types/request.ts";
 
 const { ENV } = env;
 

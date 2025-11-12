@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
-import type { UserRequest } from "../types/request.ts";
+import type { UserRequest } from "@services/shared/src/types/request.ts";
 import EmailService from "../services/email.ts";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 
 class EmailController {
   constructor(protected emailService = new EmailService()) {

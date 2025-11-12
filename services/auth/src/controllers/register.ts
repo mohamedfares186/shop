@@ -1,10 +1,10 @@
 import Tokens from "../utils/Token.ts";
 import Session from "../models/sessions.ts";
 import env from "../config/env.ts";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 import RegisterService from "../services/register.ts";
 import type { Request, Response } from "express";
-import type { RegisterCredentials } from "../types/credentials.ts";
+import type { RegisterCredentials } from "@services/shared/src/types/credentials.ts";
 import { v4 as uuidv4 } from "uuid";
 
 const { ENV } = env;

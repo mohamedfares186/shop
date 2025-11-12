@@ -1,5 +1,5 @@
-import { logger } from "../middleware/logger.ts";
-import type { LoginCredentials } from "../types/credentials.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
+import type { LoginCredentials } from "@services/shared/src/types/credentials.ts";
 import User from "../models/users.ts";
 import bcrypt from "bcryptjs";
 

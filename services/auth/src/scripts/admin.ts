@@ -1,8 +1,8 @@
 import readline from "readline";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 import { v4 as uuidv4 } from "uuid";
 import { Role, User } from "../models/index.ts";
-import type { RegisterCredentials } from "../types/credentials.ts";
+import type { RegisterCredentials } from "@services/shared/src/types/credentials.ts";
 import bcrypt from "bcryptjs";
 
 class AdminUser {

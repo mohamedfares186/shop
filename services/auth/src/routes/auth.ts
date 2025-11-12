@@ -5,7 +5,7 @@ import LogoutController from "../controllers/logout.ts";
 import RefreshController from "../controllers/refresh.ts";
 import EmailController from "../controllers/email.ts";
 import PasswordController from "../controllers/password.ts";
-import authenticate from "../middleware/isAuthenticated.ts";
+import authenticate from "@services/shared/src/middleware/isAuthenticated.ts";
 import registerValidation from "../validation/register.ts";
 import loginValidation from "../validation/login.ts";
 import logoutValidation from "../validation/logout.ts";

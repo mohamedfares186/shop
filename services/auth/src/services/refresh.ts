@@ -1,4 +1,4 @@
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 import Tokens from "../utils/Token.ts";
 import User from "../models/users.ts";
 import Session from "../models/sessions.ts";

@@ -1,4 +1,4 @@
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 import Role from "../models/roles.ts";
 
 const Roles = async () => {

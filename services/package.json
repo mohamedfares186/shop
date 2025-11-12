@@ -1,0 +1,17 @@
+{
+  "name": "services",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "auth",
+    "products"
+  ],
+  "scripts": {
+    "build:shared": "npm run build --workspace=@services/shared",
+    "dev:auth": "npm run dev --workspace=@services/auth"
+  },
+  "author": "Mohamed Fares",
+  "license": "Apache-2.0",
+  "type": "module"
+}

@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 import LogoutService from "../services/logout.ts";
 
 class LogoutController {

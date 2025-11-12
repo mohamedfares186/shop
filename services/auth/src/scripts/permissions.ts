@@ -1,6 +1,6 @@
 import Permission from "../models/permissions.ts";
 import Role from "../models/roles.ts";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 import type { UUIDTypes } from "uuid";
 
 const Permissions = async () => {

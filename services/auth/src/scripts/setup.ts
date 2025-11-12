@@ -1,10 +1,9 @@
 import Roles from "./roles.ts";
 import Permissions from "./permissions.ts";
 import AdminUser from "./admin.ts";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 
 const admin = new AdminUser();
-
 
 try {
   await Roles();
@@ -14,4 +13,3 @@ try {
   logger.error(error);
   throw error;
 }
-

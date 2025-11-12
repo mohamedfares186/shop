@@ -1,7 +1,7 @@
-import { it } from "@jest/globals";
+import { it, jest, beforeAll, afterAll, expect } from "@jest/globals";
 import request from "supertest";
 
-let mockUuidCounter = 0;
+let mockUuidCounter = 1000;
 jest.mock("uuid", () => ({
   v4: jest.fn(() => `mock-uuid-${mockUuidCounter++}`),
 }));

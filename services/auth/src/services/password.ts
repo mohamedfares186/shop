@@ -1,9 +1,9 @@
-import sendEmail from "../utils/email.ts";
+import sendEmail from "@services/shared/src/utils/email.ts";
 import Tokens from "../utils/Token.ts";
 import env from "../config/env.ts";
 import bcrypt from "bcryptjs";
 import User from "../models/users.ts";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 
 const { SECURE } = env;
 

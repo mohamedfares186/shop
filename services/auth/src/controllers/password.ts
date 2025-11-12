@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import PasswordService from "../services/password.ts";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 
 class PasswordController {
   constructor(protected passwordService = new PasswordService()) {
