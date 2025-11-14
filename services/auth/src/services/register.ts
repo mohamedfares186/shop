@@ -1,13 +1,11 @@
 import { logger } from "@services/shared/src/middleware/logger.ts";
 import { v4 as uuidv4, type UUIDTypes } from "uuid";
 import bcrypt from "bcryptjs";
-import User from "../models/users.ts";
-import type { RegisterCredentials } from "@services/shared/src/types/credentials.ts";
+import type { RegisterCredentials } from "../types/credentials.ts";
 import Tokens from "../utils/Token.ts";
 import sendEmail from "@services/shared/src/utils/email.ts";
 import env from "../config/env.ts";
-import { Op } from "sequelize";
-import Role from "../models/roles.ts";
+import type { User } from "../types/credentials.ts";
 
 const { SECURE, EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = env;
 
@@ -45,45 +43,29 @@ class RegisterService {
         };
       }
 
-      const existingUser = await User.findOne({
-        where: {
-          [Op.or]: [{ email }, { username }],
-        },
-      });
-
-      if (existingUser) {
-        return {
-          success: false,
-          message: "Email or username already exists",
-        };
-      }
-
-      const role = await Role.findOne({ where: { level: 1234 } });
-
-      if (!role) {
-        logger.error("Default role not found in database");
-        return {
-          success: false,
-          message: "System configuration error. Please contact support.",
-        };
-      }
-
       const passwordHash = await bcrypt.hash(password, 12);
       const userId: UUIDTypes = uuidv4();
 
-      const newUser = await User.create({
-        userId,
-        firstName,
-        lastName,
-        email,
-        username,
-        password: passwordHash,
-        roleId: role.roleId,
-        dateOfBirth,
-        isVerified: false,
-      });
+      const response = await fetch(
+        "http://localhost:5001/api/v1/users/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            firstName,
+            lastName,
+            email,
+            username,
+            password: passwordHash,
+            dateOfBirth,
+          }),
+        }
+      );
 
-      if (!newUser) {
+      if (!response.ok) {
         return {
           success: false,
           message: "Failed to create user account",
@@ -96,7 +78,7 @@ class RegisterService {
         const link = `http://localhost:5000/api/v1/auth/email/verify/${token}`;
 
         await sendEmail(
-          newUser.email,
+          email,
           "Verify your Email",
           `Click this link to verify your email: ${link}`,
           EMAIL_HOST as string,
@@ -116,7 +98,7 @@ class RegisterService {
         message: emailSent
           ? "Registration successful. Please check your email to verify your account."
           : "Registration successful, but we couldn't send the verification email. Please request a new one.",
-        user: newUser,
+        user: await response.json(),
       };
     } catch (error) {
       logger.error(`Error during user registration: ${error}`);

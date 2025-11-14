@@ -1,10 +1,9 @@
 import Tokens from "../utils/Token.ts";
-import Session from "../models/sessions.ts";
 import env from "../config/env.ts";
 import { logger } from "@services/shared/src/middleware/logger.ts";
 import RegisterService from "../services/register.ts";
 import type { Request, Response } from "express";
-import type { RegisterCredentials } from "@services/shared/src/types/credentials.ts";
+import type { RegisterCredentials } from "../types/credentials.ts";
 import { v4 as uuidv4 } from "uuid";
 
 const { ENV } = env;
@@ -45,13 +44,25 @@ class RegisterController {
         const sessionId = uuidv4();
         const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
-        await Session.create({
-          sessionId,
-          userId: result.user.userId,
-          token: refreshToken,
-          expiresAt,
-          isRevoked: false,
-        });
+        const response = await fetch(
+          "http://localhost:5001/api/v1/session/create",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sessionId,
+              userId: result.user.userId,
+              token: refreshToken,
+              expiresAt,
+              isRevoked: false,
+            }),
+          }
+        );
+
+        if (!response.ok)
+          logger.error(`Couldn't save user session: ${response}`);
       } catch (sessionError) {
         logger.error(`Failed to create session for new user: ${sessionError}`);
       }

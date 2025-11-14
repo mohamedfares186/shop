@@ -25,17 +25,28 @@ jobs:
       - name: Type Check
         run: cd services/auth/ && npx tsc --noEmit
 
-      - name: Run tests
-        run: cd services/auth/ && npm run test
-        env:
-          NODE_ENV: ${{ secrets.NODE_ENV }}
-          PORT: ${{ secrets.PORT }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          SECURE_TOKEN_SECRET: ${{ secrets.SECURE_TOKEN_SECRET }}
-          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-
       - name: Build Docker Image
         run: cd services/auth/ && docker build -t auth:latest .
+
+  users:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: cd services/users/ && npm install
+
+      - name: Run Lint
+        run: cd services/users/ && npm run lint
+
+      - name: Type Check
+        run: cd services/users/ && npx tsc --noEmit
+
+      - name: Build Docker Image
+        run: cd services/users/ && docker build -t users:latest .

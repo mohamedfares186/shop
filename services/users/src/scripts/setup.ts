@@ -11,5 +11,4 @@ try {
   await admin.Run();
 } catch (error) {
   logger.error(error);
-  throw error;
 }

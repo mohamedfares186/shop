@@ -9,9 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "test": "jest --detectOpenHandles",
     "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
-    "setup:dev": "tsx src/scripts/setup.ts",
-    "setup": "node dist/scripts/setup.js"
+    "lint:fix": "eslint src/**/*.ts --fix"
   },
   "author": "Mohamed Fares",
   "license": "Apache-2.0",

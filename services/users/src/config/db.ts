@@ -26,7 +26,7 @@ const database: SequelizeOptions = {
 
 const sequelize = new Sequelize(database);
 
-export const dbConnection = async () => {
+export const connectDB = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync({ force: true });

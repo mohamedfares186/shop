@@ -1,3 +1,13 @@
+import type { UUIDTypes } from "uuid";
+
+interface User {
+  userId: UUIDTypes;
+  roleId: UUIDTypes;
+  email: string;
+  username: string;
+  isVerified: boolean;
+}
+
 interface LoginCredentials {
   username: string;
   password: string;
@@ -13,4 +23,4 @@ interface RegisterCredentials {
   dateOfBirth: string;
 }
 
-export type { LoginCredentials, RegisterCredentials };
+export type { User, LoginCredentials, RegisterCredentials };

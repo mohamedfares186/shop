@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import { logger } from "../middleware/logger.ts";
+import { logger } from "@services/shared/src/middleware/logger.ts";
 import type { Dialect, Options as SequelizeOptions } from "sequelize";
 import env from "./env.ts";
 
@@ -26,7 +26,7 @@ const database: SequelizeOptions = {
 
 const sequelize = new Sequelize(database);
 
-export const connect = async () => {
+export const connectDB = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync({ force: true });

@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import env from "../config/env.ts";
-import User from "../models/users.ts";
+import type { User } from "../types/credentials.ts";
 import type { UUIDTypes } from "uuid";
 
 const { JWT } = env;

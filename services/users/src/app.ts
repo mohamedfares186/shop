@@ -1,23 +1,20 @@
-import express, {
-  type ErrorRequestHandler,
-  type RequestHandler,
-} from "express";
-import cookieParser from "cookie-parser";
+import express, { type RequestHandler } from "express";
+import cors from "cors";
+import router from "./routes/users.ts";
 import requestLogger from "@services/shared/src/middleware/logger.ts";
 import limiter from "@services/shared/src/middleware/limiter.ts";
 import error from "@services/shared/src/middleware/error.ts";
-import router from "./routes/auth.ts";
 
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(express.urlencoded());
+app.use(cors());
 app.use(requestLogger as RequestHandler);
 app.use(limiter);
 
-app.use("/api/v1/auth", router);
+app.use("/users", router);
 
-app.use(error as ErrorRequestHandler);
+app.use(error);
 
 export default app;

@@ -1,14 +1,39 @@
-*node_modules/
-*dist/
+# Dependencies
+node_modules/
+*/node_modules/
+services/node_modules/
+client/node_modules/
+admin/node_modules/
+
+
+# Build outputs
+dist/
+.next/
+services/*/dist/
+services/packages/*/dist/
+
+# IDE settings
+.vs/
 *.vscode/
+.idea/
+*.swp
+*.swo
 
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
 .env*
+services/**/.env
 
+# Database files
 *database/
 *migrations/
 *seeders/
 *.db
 *.sqlite*
 
+# Logs
 *logs/
 *.log

@@ -1,26 +1,58 @@
+# Dependencies
 node_modules/
+*/node_modules/
+services/node_modules/
+client/node_modules/
+admin/node_modules/
+
+
+# Build outputs
 dist/
-.vscode/
+.next/
+services/*/dist/
+services/packages/*/dist/
 
-.env
-.env.*
 
-database/
-migrations/
-seeders/
+# IDE settings
+.vs/
+*.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env*
+*/.env*
+services/**/.env*
+client/**/.env*
+admin/**/.env*
+
+# Database files
+*database/
+*migrations/
+*seeders/
 *.db
 *.sqlite*
 
-logs/
+# Logs
+*logs/
 *.log
 
+# Documentation
 README.md
 LICENSE.md
 
+# Git files
 .git
 .gitignore
 
+# Docker files
+*/Dockerfile
 Dockerfile
-DockerFile
 docker-compose.*
+*/.dockerignore
 .dockerignore

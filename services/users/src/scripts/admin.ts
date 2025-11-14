@@ -1,8 +1,9 @@
 import readline from "readline";
 import { logger } from "@services/shared/src/middleware/logger.ts";
 import { v4 as uuidv4 } from "uuid";
+import type { UUIDTypes } from "uuid";
 import { Role, User } from "../models/index.ts";
-import type { RegisterCredentials } from "@services/shared/src/types/credentials.ts";
+import type { RegisterCredentials } from "../types/credentials.ts";
 import bcrypt from "bcryptjs";
 
 class AdminUser {
@@ -150,7 +151,7 @@ class AdminUser {
 
     if (!adminRoleId) throw new Error(`Admin Role is not initialized`);
 
-    const userId = uuidv4();
+    const userId: UUIDTypes = uuidv4();
 
     const passwordHash = await bcrypt.hash(credentials.password, 12);
 
